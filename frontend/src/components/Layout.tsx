@@ -18,6 +18,9 @@ export default function Layout() {
           <NavLink to="/conflicts" className={navLinkClass}>
             Conflicts
           </NavLink>
+          <NavLink to="/replan" className={navLinkClass}>
+            Replan
+          </NavLink>
         </nav>
       </header>
       <main className="app-main">

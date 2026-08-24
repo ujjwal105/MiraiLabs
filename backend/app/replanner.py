@@ -217,6 +217,7 @@ def replan_company_delay(db: Session, company_id: int, delay_hours: float) -> di
             "disruption": f"{company.name} arriving {delay_hours}h late",
             "moved": [],
             "cancelled": [],
+            "backfilled": [],
             "notify": {"students": [], "companies": []},
             "note": "No scheduled interviews fell inside the delay window — nothing to replan.",
         }
@@ -262,6 +263,7 @@ def replan_panel_dropout(db: Session, panel_id: int) -> dict:
             "disruption": f"Panel {panel.label} ({company.name}) dropped out",
             "moved": [],
             "cancelled": [],
+            "backfilled": [],
             "notify": {"students": [], "companies": []},
             "note": "That panel had no scheduled interviews — nothing to replan.",
         }
@@ -306,6 +308,7 @@ def replan_room_unavailable(db: Session, room_id: int) -> dict:
             "disruption": f"{room.name} became unavailable",
             "moved": [],
             "cancelled": [],
+            "backfilled": [],
             "notify": {"students": [], "companies": []},
             "note": "That room had no scheduled interviews — nothing to replan.",
         }
@@ -386,6 +389,7 @@ def replan_student_withdrawal(db: Session, student_id: int) -> dict:
 
     return {
         "disruption": f"{student.name} ({student.roll_no}) withdrew",
+        "moved": [],
         "cancelled": cancelled,
         "backfilled": backfilled,
         "notify": _notify([], cancelled, backfilled),
