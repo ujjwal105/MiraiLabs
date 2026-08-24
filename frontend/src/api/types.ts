@@ -97,3 +97,20 @@ export interface ReplanResult {
   notify: { students: string[]; companies: string[] };
   note?: string;
 }
+
+export interface Metrics {
+  total_interviews: number;
+  scheduled: number;
+  unscheduled: number;
+  cancelled: number;
+  coverage_pct: number;
+  coverage_by_day: Record<string, number>;
+  coverage_by_tier: Record<string, number>;
+  room_utilization_by_day: Record<string, number>;
+  avg_student_wait_minutes: number;
+  integrity: {
+    student_clashes: number;
+    room_double_bookings: number;
+    panel_double_bookings: number;
+  };
+}

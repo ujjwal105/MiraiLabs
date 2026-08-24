@@ -1,6 +1,7 @@
 import type {
   Company,
   Interview,
+  Metrics,
   ReplanResult,
   Room,
   StateSummary,
@@ -37,6 +38,7 @@ export const api = {
     request<{ generated: unknown; scheduled: unknown }>("/api/dataset/reset", { method: "POST" }),
 
   stateSummary: () => request<StateSummary>("/api/state/summary"),
+  metrics: () => request<Metrics>("/api/metrics"),
 
   companies: () => request<Company[]>("/api/companies"),
   company: (id: number) => request<Company & { interviews: Interview[] }>(`/api/companies/${id}`),

@@ -3,10 +3,16 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.metrics import compute_metrics
 from app.models import Company, Interview, InterviewStatus, Panel, Room, Shortlist, Student
 from app.serializers import company_to_dict, interview_to_dict, room_to_dict, student_to_dict
 
 router = APIRouter(prefix="/api", tags=["query"])
+
+
+@router.get("/metrics")
+def get_metrics(db: Session = Depends(get_db)):
+    return compute_metrics(db)
 
 
 @router.get("/companies")

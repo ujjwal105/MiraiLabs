@@ -21,6 +21,9 @@ export default function Layout() {
           <NavLink to="/replan" className={navLinkClass}>
             Replan
           </NavLink>
+          <NavLink to="/metrics" className={navLinkClass}>
+            Metrics
+          </NavLink>
         </nav>
       </header>
       <main className="app-main">
