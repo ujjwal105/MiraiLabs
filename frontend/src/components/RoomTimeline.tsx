@@ -38,11 +38,15 @@ export default function RoomTimeline({ rooms, interviews }: Props) {
         <div className="timeline-row timeline-header">
           <div className="timeline-room-label" />
           <div className="timeline-track timeline-track-header">
-            {HOURS.map((h) => (
+            {HOURS.map((h, i) => (
               <span
                 key={h}
                 className="timeline-hour-mark"
-                style={{ left: `${((h - DAY_START_HOUR) / 8) * 100}%` }}
+                style={
+                  i === HOURS.length - 1
+                    ? { right: 0, transform: "none" }
+                    : { left: `${((h - DAY_START_HOUR) / 8) * 100}%` }
+                }
               >
                 {h}:00
               </span>
