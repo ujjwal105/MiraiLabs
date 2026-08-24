@@ -127,15 +127,26 @@ def list_conflicts(day: int | None = None, db: Session = Depends(get_db)):
 @router.get("/state/summary")
 def state_summary(db: Session = Depends(get_db)):
     by_status = dict(db.query(Interview.status, func.count(Interview.id)).group_by(Interview.status).all())
-    by_day = dict(
+    scheduled_by_day = dict(
         db.query(Interview.day, func.count(Interview.id))
         .filter(Interview.status == InterviewStatus.SCHEDULED)
         .group_by(Interview.day)
         .all()
     )
+    # Unscheduled interviews never got a `day` written — fall back to the
+    # company's scheduled_day, which is known regardless of outcome.
+    unscheduled_by_day = dict(
+        db.query(Company.scheduled_day, func.count(Interview.id))
+        .join(Shortlist, Shortlist.company_id == Company.id)
+        .join(Interview, Interview.shortlist_id == Shortlist.id)
+        .filter(Interview.status == InterviewStatus.UNSCHEDULED)
+        .group_by(Company.scheduled_day)
+        .all()
+    )
     return {
         "interviews_by_status": {k.value: v for k, v in by_status.items()},
-        "scheduled_by_day": by_day,
+        "scheduled_by_day": scheduled_by_day,
+        "unscheduled_by_day": unscheduled_by_day,
         "total_students": db.query(func.count(Student.id)).scalar(),
         "total_companies": db.query(func.count(Company.id)).scalar(),
         "total_rooms": db.query(func.count(Room.id)).scalar(),

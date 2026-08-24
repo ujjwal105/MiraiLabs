@@ -31,6 +31,37 @@
   }
 }
 
+/* Data-viz palette — see the dataviz skill's references/palette.md.
+   Categorical slots are assigned in fixed order to company tiers
+   (day1_mass_recruiter, dream, regular, niche); status colors are fixed
+   regardless of theme. */
+.viz-root {
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --viz-ink-secondary: var(--text-muted);
+  --viz-gridline: var(--border);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .viz-root {
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+  }
+}
+:root[data-theme="dark"] .viz-root {
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -152,4 +183,258 @@ p {
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 4px;
+}
+
+/* --- shared page chrome --- */
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.day-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.day-tab {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.day-tab-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.text-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  margin: 12px 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* --- chips (conflict category summary) --- */
+
+.chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-critical);
+  flex-shrink: 0;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+.tag-critical {
+  background: color-mix(in srgb, var(--status-critical) 18%, transparent);
+  color: var(--status-critical);
+}
+
+/* --- room timeline (schedule view) --- */
+
+.timeline-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--viz-ink-secondary);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.timeline-grid {
+  overflow-x: auto;
+}
+
+.timeline-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--viz-gridline);
+}
+
+.timeline-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+}
+
+.timeline-room-label {
+  width: 90px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--viz-ink-secondary);
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 4px 0;
+  white-space: nowrap;
+}
+
+.timeline-track {
+  position: relative;
+  flex: 1;
+  min-width: 640px;
+  height: 30px;
+}
+
+.timeline-track-header {
+  height: 16px;
+}
+
+.timeline-hour-mark {
+  position: absolute;
+  top: 0;
+  font-size: 11px;
+  color: var(--viz-ink-secondary);
+  transform: translateX(-50%);
+}
+
+.timeline-block {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 4px;
+  overflow: hidden;
+  outline: 2px solid var(--bg-panel);
+  outline-offset: -1px;
+  cursor: default;
+}
+
+.timeline-block-label {
+  display: block;
+  font-size: 10px;
+  line-height: 24px;
+  color: #fff;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* --- day breakdown bar chart (dashboard) --- */
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  height: 160px;
+  padding-top: 16px;
+  border-bottom: 1px solid var(--viz-gridline);
+}
+
+.bar-chart-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.bar-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 130px;
+  width: 100%;
+  justify-content: center;
+}
+
+.bar-chart-bar {
+  width: 22px;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+}
+
+.bar-chart-value {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
+.bar-chart-label {
+  font-size: 12px;
+  color: var(--viz-ink-secondary);
+}
+
+.bar-chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--viz-ink-secondary);
 }

@@ -12,6 +12,12 @@ export default function Layout() {
           <NavLink to="/" className={navLinkClass} end>
             Dashboard
           </NavLink>
+          <NavLink to="/schedule" className={navLinkClass}>
+            Schedule
+          </NavLink>
+          <NavLink to="/conflicts" className={navLinkClass}>
+            Conflicts
+          </NavLink>
         </nav>
       </header>
       <main className="app-main">

@@ -64,6 +64,7 @@ export interface Interview {
 export interface StateSummary {
   interviews_by_status: Record<string, number>;
   scheduled_by_day: Record<string, number>;
+  unscheduled_by_day: Record<string, number>;
   total_students: number;
   total_companies: number;
   total_rooms: number;
