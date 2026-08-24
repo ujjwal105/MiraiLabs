@@ -98,11 +98,11 @@ class _DayBoard:
         return [panel_ids[(ptr + i) % n] for i in range(n)]
 
 
-def _try_place(board: _DayBoard, student_id: int, company_id: int, panel_ids: list[int], num_units: int):
+def _try_place(board: _DayBoard, student_id: int, company_id: int, panel_ids: list[int], num_units: int, min_start: int = 0):
     ordered_panels = board.next_panel_order(company_id, panel_ids)
     student_slots = board.student_free[student_id]
 
-    for start in range(0, SLOTS_PER_DAY - num_units + 1):
+    for start in range(min_start, SLOTS_PER_DAY - num_units + 1):
         if not _free_run(student_slots, start, num_units):
             continue
         for panel_id in ordered_panels:
@@ -118,23 +118,31 @@ def _try_place(board: _DayBoard, student_id: int, company_id: int, panel_ids: li
     return None
 
 
-def _diagnose_failure(board: _DayBoard, student_id: int, panel_ids: list[int], num_units: int, shortlist_count: int, panel_count: int) -> str:
-    capacity = panel_count * (SLOTS_PER_DAY // max(num_units, 1))
+def _diagnose_failure(
+    board: _DayBoard,
+    student_id: int,
+    panel_ids: list[int],
+    num_units: int,
+    shortlist_count: int,
+    panel_count: int,
+    min_start: int = 0,
+) -> str:
+    capacity = panel_count * ((SLOTS_PER_DAY - min_start) // max(num_units, 1))
 
     panel_only_possible = any(
         _free_run(board.panel_free[pid], start, num_units)
         for pid in panel_ids
-        for start in range(0, SLOTS_PER_DAY - num_units + 1)
+        for start in range(min_start, SLOTS_PER_DAY - num_units + 1)
     )
     if not panel_only_possible:
         return (
-            f"Company's {panel_count} panel(s) are fully booked for the day — "
-            f"shortlist of {shortlist_count} exceeds effective capacity (~{capacity} interviews/day)."
+            f"Company's {panel_count} panel(s) are fully booked for the remaining day — "
+            f"shortlist of {shortlist_count} exceeds effective capacity (~{capacity} interviews)."
         )
 
     student_slots = board.student_free[student_id]
     student_has_free_run = any(
-        _free_run(student_slots, start, num_units) for start in range(0, SLOTS_PER_DAY - num_units + 1)
+        _free_run(student_slots, start, num_units) for start in range(min_start, SLOTS_PER_DAY - num_units + 1)
     )
     if not student_has_free_run:
         return "Student's day is already full with other companies' interviews — no free window left."

@@ -12,3 +12,8 @@ DAY_START_MINUTES = 9 * 60  # 9:00
 DAY_END_MINUTES = 17 * 60  # 17:00
 SLOT_GRANULARITY_MINUTES = 15
 SLOTS_PER_DAY = (DAY_END_MINUTES - DAY_START_MINUTES) // SLOT_GRANULARITY_MINUTES
+
+
+def slot_to_clock(slot: int) -> str:
+    total_minutes = DAY_START_MINUTES + slot * SLOT_GRANULARITY_MINUTES
+    return f"{total_minutes // 60:02d}:{total_minutes % 60:02d}"
