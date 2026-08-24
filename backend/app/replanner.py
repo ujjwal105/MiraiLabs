@@ -13,6 +13,8 @@ had to be cancelled (with a reason), and who needs to be told. Nothing is
 ever silently dropped.
 """
 
+from collections import defaultdict
+
 from sqlalchemy.orm import Session
 
 from app.config import slot_to_clock
@@ -174,19 +176,21 @@ def _opportunistic_backfill(db: Session, board: _DayBoard, day: int) -> list[dic
 
 
 def _notify(moved: list[dict], cancelled: list[dict], extra: list[dict] | None = None) -> dict:
-    students = {}
+    students: dict[str, list[str]] = defaultdict(list)
     companies = set()
     for row in moved:
-        students[row["roll_no"]] = f"{row['student']} — time/room/panel changed for {row['company']}"
+        students[row["roll_no"]].append(f"{row['student']} — time/room/panel changed for {row['company']}")
         companies.add(row["company"])
     for row in cancelled:
-        students[row["roll_no"]] = f"{row['student']} — interview with {row['company']} cancelled: {row['reason']}"
+        students[row["roll_no"]].append(
+            f"{row['student']} — interview with {row['company']} cancelled: {row['reason']}"
+        )
         companies.add(row["company"])
     for row in extra or []:
-        students[row["roll_no"]] = f"{row['student']} — newly scheduled with {row['company']} (backfilled slot)"
+        students[row["roll_no"]].append(f"{row['student']} — newly scheduled with {row['company']} (backfilled slot)")
         companies.add(row["company"])
     return {
-        "students": sorted(students.values()),
+        "students": sorted(msg for messages in students.values() for msg in messages),
         "companies": sorted(companies),
     }
 
