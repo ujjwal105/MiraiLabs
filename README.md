@@ -7,7 +7,7 @@ actual day (late arrivals, panel drops, withdrawals, room outages).
 ## Stack
 
 - **Backend**: Python, FastAPI, SQLAlchemy, SQLite
-- **Frontend**: React, Vite, TypeScript
+- **Frontend**: React, Vite, TypeScript, Tailwind CSS + shadcn/ui (sidebar layout, charts via Recharts)
 
 ## Architecture
 
