@@ -32,12 +32,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
+        <div className="flex items-center gap-2">
           <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm shrink-0">
-            PW
+            PS
           </div>
           <span className="font-semibold text-sm truncate group-data-[collapsible=icon]:hidden">
-            Placement Week Scheduler
+            Placement Scheduler
           </span>
         </div>
       </SidebarHeader>
@@ -45,15 +45,21 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Coordinator</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1.5">
               {NAV_ITEMS.map((item) => {
                 const isActive = item.url === "/" ? pathname === "/" : pathname.startsWith(item.url);
                 return (
                   <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                      size="lg"
+                      className="gap-3 group-data-[collapsible=icon]:justify-center [&_svg]:size-5"
+                    >
                       <Link to={item.url}>
                         <item.icon />
-                        <span>{item.title}</span>
+                        <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
