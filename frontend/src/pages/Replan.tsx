@@ -42,7 +42,7 @@ export default function Replan() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <CompanyDelayCard companies={companies} onRun={runDisruption} />
         <PanelDropoutCard companies={companies} onRun={runDisruption} />
         <StudentWithdrawalCard onRun={runDisruption} />
@@ -79,12 +79,14 @@ function CompanyDelayCard({ companies, onRun }: { companies: Company[]; onRun: R
   };
 
   return (
-    <Card>
+    <Card className="flex h-full flex-col">
       <CardHeader>
         <CardTitle className="text-base">Company arrives late</CardTitle>
-        <CardDescription>Interviews inside the delay window get replanned to later in the day.</CardDescription>
+        <CardDescription className="min-h-[3.75rem]">
+          Interviews inside the delay window get replanned to later in the day.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-1 flex-col gap-3">
         <Select value={companyId === "" ? undefined : String(companyId)} onValueChange={(v) => setCompanyId(Number(v))}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select company…" />
@@ -108,7 +110,7 @@ function CompanyDelayCard({ companies, onRun }: { companies: Company[]; onRun: R
             onChange={(e) => setDelayHours(Number(e.target.value))}
           />
         </div>
-        <Button disabled={companyId === "" || loading} onClick={submit}>
+        <Button className="mt-auto" disabled={companyId === "" || loading} onClick={submit}>
           {loading ? "Replanning…" : "Replan"}
         </Button>
       </CardContent>
@@ -139,12 +141,14 @@ function PanelDropoutCard({ companies, onRun }: { companies: Company[]; onRun: R
   };
 
   return (
-    <Card>
+    <Card className="flex h-full flex-col">
       <CardHeader>
         <CardTitle className="text-base">Panel drops out</CardTitle>
-        <CardDescription>Its scheduled interviews get replanned onto the company's remaining panels.</CardDescription>
+        <CardDescription className="min-h-[3.75rem]">
+          Its scheduled interviews get replanned onto the company's remaining panels.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-1 flex-col gap-3">
         <Select value={companyId === "" ? undefined : String(companyId)} onValueChange={(v) => setCompanyId(Number(v))}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select company…" />
@@ -173,7 +177,7 @@ function PanelDropoutCard({ companies, onRun }: { companies: Company[]; onRun: R
             ))}
           </SelectContent>
         </Select>
-        <Button disabled={panelId === "" || loading} onClick={submit}>
+        <Button className="mt-auto" disabled={panelId === "" || loading} onClick={submit}>
           {loading ? "Replanning…" : "Replan"}
         </Button>
       </CardContent>
@@ -204,14 +208,14 @@ function StudentWithdrawalCard({ onRun }: { onRun: Runner }) {
   };
 
   return (
-    <Card>
+    <Card className="flex h-full flex-col">
       <CardHeader>
         <CardTitle className="text-base">Student withdraws</CardTitle>
-        <CardDescription>
+        <CardDescription className="min-h-[3.75rem]">
           All their remaining interviews are cancelled; freed slots are backfilled from waitlists.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-1 flex-col gap-3">
         <div className="flex gap-2">
           <Input
             placeholder="Search name or roll no…"
@@ -242,7 +246,7 @@ function StudentWithdrawalCard({ onRun }: { onRun: Runner }) {
             Selected: {selected.name} ({selected.roll_no})
           </Badge>
         )}
-        <Button disabled={!selected || loading} onClick={submit}>
+        <Button className="mt-auto" disabled={!selected || loading} onClick={submit}>
           {loading ? "Replanning…" : "Withdraw & replan"}
         </Button>
       </CardContent>
@@ -264,12 +268,14 @@ function RoomUnavailableCard({ rooms, onRun }: { rooms: Room[]; onRun: Runner })
   const availableRooms = rooms.filter((r) => r.available);
 
   return (
-    <Card>
+    <Card className="flex h-full flex-col">
       <CardHeader>
         <CardTitle className="text-base">Room becomes unavailable</CardTitle>
-        <CardDescription>Its scheduled interviews get replanned into another free room, or a new time.</CardDescription>
+        <CardDescription className="min-h-[3.75rem]">
+          Its scheduled interviews get replanned into another free room, or a new time.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-1 flex-col gap-3">
         <Select value={roomId === "" ? undefined : String(roomId)} onValueChange={(v) => setRoomId(Number(v))}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select room…" />
@@ -282,7 +288,7 @@ function RoomUnavailableCard({ rooms, onRun }: { rooms: Room[]; onRun: Runner })
             ))}
           </SelectContent>
         </Select>
-        <Button disabled={roomId === "" || loading} onClick={submit}>
+        <Button className="mt-auto" disabled={roomId === "" || loading} onClick={submit}>
           {loading ? "Replanning…" : "Replan"}
         </Button>
       </CardContent>
