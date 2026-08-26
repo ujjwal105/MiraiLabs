@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api/client";
-import type { StateSummary } from "../api/types";
-import DayBreakdownChart from "../components/DayBreakdownChart";
+import { api } from "@/api/client";
+import type { StateSummary } from "@/api/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import DayBreakdownChart from "@/components/DayBreakdownChart";
+import StatCard from "@/components/StatCard";
 
 export default function Dashboard() {
   const [summary, setSummary] = useState<StateSummary | null>(null);
@@ -35,69 +38,74 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="panel panel-error">
-        <p>Could not reach the backend at the configured API URL.</p>
-        <p className="panel-error-detail">{error}</p>
-        <p>Is the FastAPI server running (`uvicorn app.main:app --reload`)?</p>
-      </div>
+      <Card className="border-destructive">
+        <CardContent className="space-y-2 text-sm">
+          <p>Could not reach the backend at the configured API URL.</p>
+          <p className="font-mono text-xs text-muted-foreground break-all">{error}</p>
+          <p>
+            Is the FastAPI server running (<code>uvicorn app.main:app --reload</code>)?
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!summary) {
-    return <div className="panel">Loading…</div>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   const conflictCount = summary.interviews_by_status.unscheduled ?? 0;
 
   return (
-    <>
-      <div className="panel">
-        <div className="panel-header-row">
-          <h1>Dashboard</h1>
-          <button className="day-tab" onClick={handleReset} disabled={resetting}>
-            {resetting ? "Resetting…" : "Reset & regenerate dataset"}
-          </button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Current state of placement week.</p>
         </div>
-        <div className="stat-grid">
-          <div className="stat-tile">
-            <div className="stat-value">{summary.total_students}</div>
-            <div className="stat-label">Students</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{summary.total_companies}</div>
-            <div className="stat-label">Companies</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{summary.total_rooms}</div>
-            <div className="stat-label">Rooms</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{summary.interviews_by_status.scheduled ?? 0}</div>
-            <div className="stat-label">Scheduled interviews</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{conflictCount}</div>
-            <div className="stat-label">
-              <Link to="/conflicts">Unscheduled →</Link>
-            </div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{summary.withdrawn_students}</div>
-            <div className="stat-label">Withdrawn students</div>
-          </div>
-        </div>
+        <Button variant="outline" onClick={handleReset} disabled={resetting}>
+          {resetting ? "Resetting…" : "Reset & regenerate dataset"}
+        </Button>
       </div>
 
-      <div className="panel" style={{ marginTop: 16 }}>
-        <DayBreakdownChart
-          scheduledByDay={summary.scheduled_by_day}
-          unscheduledByDay={summary.unscheduled_by_day}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <StatCard value={summary.total_students} label="Students" />
+        <StatCard value={summary.total_companies} label="Companies" />
+        <StatCard value={summary.total_rooms} label="Rooms" />
+        <StatCard value={summary.interviews_by_status.scheduled ?? 0} label="Scheduled interviews" />
+        <StatCard
+          value={conflictCount}
+          label={
+            <Link to="/conflicts" className="underline-offset-2 hover:underline">
+              Unscheduled →
+            </Link>
+          }
         />
-        <p className="muted" style={{ marginTop: 12 }}>
-          See the full room-by-room layout in <Link to="/schedule">Schedule</Link>, or the list of
-          interviews that couldn't be placed in <Link to="/conflicts">Conflicts</Link>.
-        </p>
+        <StatCard value={summary.withdrawn_students} label="Withdrawn students" />
       </div>
-    </>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Scheduled vs. unscheduled, by day</CardTitle>
+          <CardDescription>
+            See the full room-by-room layout in{" "}
+            <Link to="/schedule" className="underline-offset-2 hover:underline">
+              Schedule
+            </Link>
+            , or what couldn't be placed in{" "}
+            <Link to="/conflicts" className="underline-offset-2 hover:underline">
+              Conflicts
+            </Link>
+            .
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DayBreakdownChart
+            scheduledByDay={summary.scheduled_by_day}
+            unscheduledByDay={summary.unscheduled_by_day}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

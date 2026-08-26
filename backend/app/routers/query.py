@@ -61,7 +61,9 @@ def list_panels(company_id: int | None = None, db: Session = Depends(get_db)):
 
 @router.get("/rooms")
 def list_rooms(db: Session = Depends(get_db)):
-    return [room_to_dict(r) for r in db.query(Room).order_by(Room.name).all()]
+    # order_by(Room.id) rather than Room.name — "Room-10" sorts before
+    # "Room-2" as a string, which reads as broken in the timeline view.
+    return [room_to_dict(r) for r in db.query(Room).order_by(Room.id).all()]
 
 
 @router.get("/students")

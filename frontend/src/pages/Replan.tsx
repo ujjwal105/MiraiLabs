@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { api } from "../api/client";
-import type { Company, Panel, ReplanResult, Room, Student } from "../api/types";
-import ReplanDiffView from "../components/ReplanDiff";
+import { api } from "@/api/client";
+import type { Company, Panel, ReplanResult, Room, Student } from "@/api/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ReplanDiffView from "@/components/ReplanDiff";
 
 type Runner = (fn: () => Promise<ReplanResult>) => Promise<void>;
 
@@ -27,33 +33,36 @@ export default function Replan() {
   };
 
   return (
-    <>
-      <div className="panel">
-        <h1>Replan</h1>
-        <p className="muted">
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Replan</h1>
+        <p className="text-sm text-muted-foreground">
           Inject a disruption and replan with one click. Only the interviews it actually invalidates
           move — everything else on the day stays exactly where it was.
         </p>
-        <div className="replan-grid">
-          <CompanyDelayCard companies={companies} onRun={runDisruption} />
-          <PanelDropoutCard companies={companies} onRun={runDisruption} />
-          <StudentWithdrawalCard onRun={runDisruption} />
-          <RoomUnavailableCard rooms={rooms} onRun={runDisruption} />
-        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <CompanyDelayCard companies={companies} onRun={runDisruption} />
+        <PanelDropoutCard companies={companies} onRun={runDisruption} />
+        <StudentWithdrawalCard onRun={runDisruption} />
+        <RoomUnavailableCard rooms={rooms} onRun={runDisruption} />
       </div>
 
       {error && (
-        <div className="panel panel-error" style={{ marginTop: 16 }}>
-          <p>{error}</p>
-        </div>
+        <Card className="border-destructive">
+          <CardContent className="text-sm">{error}</CardContent>
+        </Card>
       )}
 
       {result && (
-        <div className="panel" style={{ marginTop: 16 }}>
-          <ReplanDiffView result={result} />
-        </div>
+        <Card>
+          <CardContent>
+            <ReplanDiffView result={result} />
+          </CardContent>
+        </Card>
       )}
-    </>
+    </div>
   );
 }
 
@@ -70,31 +79,40 @@ function CompanyDelayCard({ companies, onRun }: { companies: Company[]; onRun: R
   };
 
   return (
-    <div className="replan-card">
-      <h3>Company arrives late</h3>
-      <p className="muted">Interviews inside the delay window get replanned to later in the day.</p>
-      <select value={companyId} onChange={(e) => setCompanyId(e.target.value ? Number(e.target.value) : "")}>
-        <option value="">Select company…</option>
-        {companies.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name} (day {c.scheduled_day})
-          </option>
-        ))}
-      </select>
-      <label className="replan-field">
-        Delay (hours)
-        <input
-          type="number"
-          min={0.25}
-          step={0.25}
-          value={delayHours}
-          onChange={(e) => setDelayHours(Number(e.target.value))}
-        />
-      </label>
-      <button className="btn-primary" disabled={companyId === "" || loading} onClick={submit}>
-        {loading ? "Replanning…" : "Replan"}
-      </button>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Company arrives late</CardTitle>
+        <CardDescription>Interviews inside the delay window get replanned to later in the day.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Select value={companyId === "" ? undefined : String(companyId)} onValueChange={(v) => setCompanyId(Number(v))}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select company…" />
+          </SelectTrigger>
+          <SelectContent>
+            {companies.map((c) => (
+              <SelectItem key={c.id} value={String(c.id)}>
+                {c.name} (day {c.scheduled_day})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="space-y-1.5">
+          <Label htmlFor="delay-hours">Delay (hours)</Label>
+          <Input
+            id="delay-hours"
+            type="number"
+            min={0.25}
+            step={0.25}
+            value={delayHours}
+            onChange={(e) => setDelayHours(Number(e.target.value))}
+          />
+        </div>
+        <Button disabled={companyId === "" || loading} onClick={submit}>
+          {loading ? "Replanning…" : "Replan"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -121,33 +139,45 @@ function PanelDropoutCard({ companies, onRun }: { companies: Company[]; onRun: R
   };
 
   return (
-    <div className="replan-card">
-      <h3>Panel drops out</h3>
-      <p className="muted">Its scheduled interviews get replanned onto the company's remaining panels.</p>
-      <select value={companyId} onChange={(e) => setCompanyId(e.target.value ? Number(e.target.value) : "")}>
-        <option value="">Select company…</option>
-        {companies.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-      <select
-        value={panelId}
-        onChange={(e) => setPanelId(e.target.value ? Number(e.target.value) : "")}
-        disabled={panels.length === 0}
-      >
-        <option value="">{panels.length === 0 ? "No active panels" : "Select panel…"}</option>
-        {panels.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.label}
-          </option>
-        ))}
-      </select>
-      <button className="btn-primary" disabled={panelId === "" || loading} onClick={submit}>
-        {loading ? "Replanning…" : "Replan"}
-      </button>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Panel drops out</CardTitle>
+        <CardDescription>Its scheduled interviews get replanned onto the company's remaining panels.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Select value={companyId === "" ? undefined : String(companyId)} onValueChange={(v) => setCompanyId(Number(v))}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select company…" />
+          </SelectTrigger>
+          <SelectContent>
+            {companies.map((c) => (
+              <SelectItem key={c.id} value={String(c.id)}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={panelId === "" ? undefined : String(panelId)}
+          onValueChange={(v) => setPanelId(Number(v))}
+          disabled={panels.length === 0}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={panels.length === 0 ? "No active panels" : "Select panel…"} />
+          </SelectTrigger>
+          <SelectContent>
+            {panels.map((p) => (
+              <SelectItem key={p.id} value={String(p.id)}>
+                {p.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button disabled={panelId === "" || loading} onClick={submit}>
+          {loading ? "Replanning…" : "Replan"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -174,39 +204,49 @@ function StudentWithdrawalCard({ onRun }: { onRun: Runner }) {
   };
 
   return (
-    <div className="replan-card">
-      <h3>Student withdraws</h3>
-      <p className="muted">All their remaining interviews are cancelled; freed slots are backfilled from waitlists.</p>
-      <div className="student-picker">
-        <input
-          type="text"
-          placeholder="Search name or roll no…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && search()}
-        />
-        <button className="day-tab" onClick={search}>
-          Search
-        </button>
-      </div>
-      {results.length > 0 && !selected && (
-        <div className="student-result-list">
-          {results.map((s) => (
-            <button key={s.id} className="student-result-item" onClick={() => setSelected(s)}>
-              {s.name} — {s.roll_no} ({s.branch}, CGPA {s.cgpa}){s.withdrawn ? " · already withdrawn" : ""}
-            </button>
-          ))}
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Student withdraws</CardTitle>
+        <CardDescription>
+          All their remaining interviews are cancelled; freed slots are backfilled from waitlists.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Search name or roll no…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && search()}
+          />
+          <Button variant="outline" onClick={search}>
+            Search
+          </Button>
         </div>
-      )}
-      {selected && (
-        <p className="selected-tag">
-          Selected: {selected.name} ({selected.roll_no})
-        </p>
-      )}
-      <button className="btn-primary" disabled={!selected || loading} onClick={submit}>
-        {loading ? "Replanning…" : "Withdraw & replan"}
-      </button>
-    </div>
+        {results.length > 0 && !selected && (
+          <div className="flex max-h-36 flex-col gap-1 overflow-y-auto">
+            {results.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSelected(s)}
+                className="rounded-md border px-2 py-1.5 text-left text-sm hover:border-primary"
+              >
+                {s.name} — {s.roll_no} ({s.branch}, CGPA {s.cgpa})
+                {s.withdrawn ? " · already withdrawn" : ""}
+              </button>
+            ))}
+          </div>
+        )}
+        {selected && (
+          <Badge variant="secondary">
+            Selected: {selected.name} ({selected.roll_no})
+          </Badge>
+        )}
+        <Button disabled={!selected || loading} onClick={submit}>
+          {loading ? "Replanning…" : "Withdraw & replan"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -224,20 +264,28 @@ function RoomUnavailableCard({ rooms, onRun }: { rooms: Room[]; onRun: Runner })
   const availableRooms = rooms.filter((r) => r.available);
 
   return (
-    <div className="replan-card">
-      <h3>Room becomes unavailable</h3>
-      <p className="muted">Its scheduled interviews get replanned into another free room, or a new time.</p>
-      <select value={roomId} onChange={(e) => setRoomId(e.target.value ? Number(e.target.value) : "")}>
-        <option value="">Select room…</option>
-        {availableRooms.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.name}
-          </option>
-        ))}
-      </select>
-      <button className="btn-primary" disabled={roomId === "" || loading} onClick={submit}>
-        {loading ? "Replanning…" : "Replan"}
-      </button>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Room becomes unavailable</CardTitle>
+        <CardDescription>Its scheduled interviews get replanned into another free room, or a new time.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Select value={roomId === "" ? undefined : String(roomId)} onValueChange={(v) => setRoomId(Number(v))}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select room…" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableRooms.map((r) => (
+              <SelectItem key={r.id} value={String(r.id)}>
+                {r.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button disabled={roomId === "" || loading} onClick={submit}>
+          {loading ? "Replanning…" : "Replan"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

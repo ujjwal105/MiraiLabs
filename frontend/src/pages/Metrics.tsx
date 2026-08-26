@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
-import { api } from "../api/client";
-import type { Metrics as MetricsData } from "../api/types";
-import { TIER_LABEL, TIER_ORDER } from "../lib/tiers";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { api } from "@/api/client";
+import type { Metrics as MetricsData } from "@/api/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import StatCard from "@/components/StatCard";
+import { TIER_LABEL, TIER_ORDER } from "@/lib/tiers";
 
 const DAYS = [1, 2, 3, 4];
+
+const utilizationChartConfig = {
+  utilization: { label: "Room utilization", color: "var(--series-1)" },
+} satisfies ChartConfig;
 
 export default function Metrics() {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
@@ -18,14 +27,14 @@ export default function Metrics() {
 
   if (error) {
     return (
-      <div className="panel panel-error">
-        <p>Could not load metrics: {error}</p>
-      </div>
+      <Card className="border-destructive">
+        <CardContent className="text-sm">Could not load metrics: {error}</CardContent>
+      </Card>
     );
   }
 
   if (!metrics) {
-    return <div className="panel">Loading…</div>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   const integrityOk =
@@ -33,112 +42,119 @@ export default function Metrics() {
     metrics.integrity.room_double_bookings === 0 &&
     metrics.integrity.panel_double_bookings === 0;
 
+  const utilizationData = DAYS.map((d) => ({
+    day: `Day ${d}`,
+    utilization: metrics.room_utilization_by_day[String(d)] ?? 0,
+  }));
+
   return (
-    <>
-      <div className="panel">
-        <h1>Schedule quality</h1>
-        <p className="muted">
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Schedule quality</h1>
+        <p className="text-sm text-muted-foreground">
           What "good" means here: high coverage, high room utilization, low student wait time, and zero
-          integrity violations. No single number is the whole story — see the per-day breakdown below for
-          why.
-        </p>
-        <div className="stat-grid">
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.coverage_pct}%</div>
-            <div className="stat-label">Coverage (of active demand)</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.avg_student_wait_minutes}m</div>
-            <div className="stat-label">Avg. gap between back-to-back interviews</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.scheduled}</div>
-            <div className="stat-label">Scheduled</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.unscheduled}</div>
-            <div className="stat-label">Unscheduled</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.cancelled}</div>
-            <div className="stat-label">Cancelled (withdrawals)</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="panel" style={{ marginTop: 16 }}>
-        <h2>Coverage &amp; room utilization by day</h2>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Day</th>
-              <th>Coverage</th>
-              <th>Room utilization</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DAYS.map((d) => (
-              <tr key={d}>
-                <td>Day {d}</td>
-                <td>{metrics.coverage_by_day[String(d)] ?? "—"}%</td>
-                <td>{metrics.room_utilization_by_day[String(d)] ?? "—"}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="muted" style={{ marginTop: 10 }}>
-          Room utilization near 100% means rooms — not panels or students — are the binding constraint
-          that day.
+          integrity violations. No single number is the whole story — see the breakdowns below for why.
         </p>
       </div>
 
-      <div className="panel" style={{ marginTop: 16 }}>
-        <h2>Coverage by company tier</h2>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Tier</th>
-              <th>Coverage</th>
-            </tr>
-          </thead>
-          <tbody>
-            {TIER_ORDER.map((tier) => (
-              <tr key={tier}>
-                <td>{TIER_LABEL[tier]}</td>
-                <td>{metrics.coverage_by_tier[tier] ?? "—"}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="muted" style={{ marginTop: 10 }}>
-          Priority protects a tier's <em>place in line</em> when a day is oversubscribed — it can't create
-          room capacity that doesn't exist. Dream companies can still show lower coverage than niche ones if
-          they land on a more crowded day.
-        </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <StatCard value={`${metrics.coverage_pct}%`} label="Coverage (of active demand)" />
+        <StatCard value={`${metrics.avg_student_wait_minutes}m`} label="Avg. gap between back-to-back interviews" />
+        <StatCard value={metrics.scheduled} label="Scheduled" />
+        <StatCard value={metrics.unscheduled} label="Unscheduled" />
+        <StatCard value={metrics.cancelled} label="Cancelled (withdrawals)" />
       </div>
 
-      <div className="panel" style={{ marginTop: 16 }}>
-        <h2>Integrity checks</h2>
-        <p className={integrityOk ? "muted" : ""} style={!integrityOk ? { color: "var(--status-critical)" } : undefined}>
-          {integrityOk
-            ? "All zero — the hard constraints (no student, room, or panel double-booked) hold."
-            : "Violations detected — this should never happen; see values below."}
-        </p>
-        <div className="stat-grid">
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.integrity.student_clashes}</div>
-            <div className="stat-label">Student clashes</div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Room utilization by day</CardTitle>
+          <CardDescription>Near 100% means rooms — not panels or students — are the binding constraint that day.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={utilizationChartConfig} className="max-h-[220px] w-full">
+            <BarChart data={utilizationData}>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="day" tickLine={false} tickMargin={10} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} width={36} unit="%" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="utilization" fill="var(--color-utilization)" radius={4} />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Coverage by day</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Day</TableHead>
+                <TableHead>Coverage</TableHead>
+                <TableHead>Room utilization</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {DAYS.map((d) => (
+                <TableRow key={d}>
+                  <TableCell>Day {d}</TableCell>
+                  <TableCell>{metrics.coverage_by_day[String(d)] ?? "—"}%</TableCell>
+                  <TableCell>{metrics.room_utilization_by_day[String(d)] ?? "—"}%</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Coverage by company tier</CardTitle>
+          <CardDescription>
+            Priority protects a tier's <em>place in line</em> when a day is oversubscribed — it can't create
+            room capacity that doesn't exist. Dream companies can still show lower coverage than niche ones
+            if they land on a more crowded day.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tier</TableHead>
+                <TableHead>Coverage</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {TIER_ORDER.map((tier) => (
+                <TableRow key={tier}>
+                  <TableCell>{TIER_LABEL[tier]}</TableCell>
+                  <TableCell>{metrics.coverage_by_tier[tier] ?? "—"}%</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Integrity checks</CardTitle>
+          <CardDescription className={integrityOk ? undefined : "text-destructive"}>
+            {integrityOk
+              ? "All zero — the hard constraints (no student, room, or panel double-booked) hold."
+              : "Violations detected — this should never happen; see values below."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard value={metrics.integrity.student_clashes} label="Student clashes" />
+            <StatCard value={metrics.integrity.room_double_bookings} label="Room double-bookings" />
+            <StatCard value={metrics.integrity.panel_double_bookings} label="Panel double-bookings" />
           </div>
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.integrity.room_double_bookings}</div>
-            <div className="stat-label">Room double-bookings</div>
-          </div>
-          <div className="stat-tile">
-            <div className="stat-value">{metrics.integrity.panel_double_bookings}</div>
-            <div className="stat-label">Panel double-bookings</div>
-          </div>
-        </div>
-      </div>
-    </>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

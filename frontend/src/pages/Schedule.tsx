@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { api } from "../api/client";
-import type { Interview, Room } from "../api/types";
-import RoomTimeline from "../components/RoomTimeline";
+import { api } from "@/api/client";
+import type { Interview, Room } from "@/api/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RoomTimeline from "@/components/RoomTimeline";
 
 const DAYS = [1, 2, 3, 4];
 
@@ -25,26 +27,32 @@ export default function Schedule() {
   }, [day]);
 
   return (
-    <div className="panel">
-      <div className="panel-header-row">
-        <h1>Schedule</h1>
-        <div className="day-tabs">
-          {DAYS.map((d) => (
-            <button
-              key={d}
-              className={d === day ? "day-tab day-tab-active" : "day-tab"}
-              onClick={() => setDay(d)}
-            >
-              Day {d}
-            </button>
-          ))}
+    <Card>
+      <CardHeader className="flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle>Schedule</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {interviews.length} scheduled interviews across {rooms.length} rooms on day {day}.
+          </p>
         </div>
-      </div>
-      <p className="muted">
-        {interviews.length} scheduled interviews across {rooms.length} rooms on day {day}.
-      </p>
-      {error && <p className="muted">Could not load schedule: {error}</p>}
-      {loading ? <p className="muted">Loading…</p> : <RoomTimeline rooms={rooms} interviews={interviews} />}
-    </div>
+        <Tabs value={String(day)} onValueChange={(v) => setDay(Number(v))}>
+          <TabsList>
+            {DAYS.map((d) => (
+              <TabsTrigger key={d} value={String(d)}>
+                Day {d}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </CardHeader>
+      <CardContent>
+        {error && <p className="text-sm text-muted-foreground">Could not load schedule: {error}</p>}
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : (
+          <RoomTimeline rooms={rooms} interviews={interviews} day={day} />
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -1,7 +1,9 @@
-import type { ReplanResult, ReplanSnapshot } from "../api/types";
+import type { ReplanResult, ReplanSnapshot } from "@/api/types";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 function SnapshotCell({ snap }: { snap?: ReplanSnapshot }) {
-  if (!snap || snap.day === null) return <span className="muted">—</span>;
+  if (!snap || snap.day === null) return <span className="text-muted-foreground">—</span>;
   return (
     <span>
       Day {snap.day}, {snap.clock} · {snap.room} · {snap.panel}
@@ -9,138 +11,133 @@ function SnapshotCell({ snap }: { snap?: ReplanSnapshot }) {
   );
 }
 
+function StatusBadge({ color, children }: { color: string; children: React.ReactNode }) {
+  return (
+    <Badge variant="outline" style={{ borderColor: color, color }}>
+      {children}
+    </Badge>
+  );
+}
+
 export default function ReplanDiffView({ result }: { result: ReplanResult }) {
   const untouched = result.moved.length === 0 && result.cancelled.length === 0 && result.backfilled.length === 0;
 
   return (
-    <div className="viz-root">
-      <div className="diff-summary-header">
-        <h2>{result.disruption}</h2>
-      </div>
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">{result.disruption}</h2>
 
       {untouched ? (
-        <p className="muted">{result.note ?? "Nothing needed to change."}</p>
+        <p className="text-sm text-muted-foreground">{result.note ?? "Nothing needed to change."}</p>
       ) : (
-        <div className="chip-row">
-          <span className="chip">
-            <span className="chip-dot" style={{ background: "var(--status-warning)" }} />
-            Moved: {result.moved.length}
-          </span>
-          <span className="chip">
-            <span className="chip-dot" style={{ background: "var(--status-critical)" }} />
-            Cancelled: {result.cancelled.length}
-          </span>
-          <span className="chip">
-            <span className="chip-dot" style={{ background: "var(--status-good)" }} />
-            Backfilled: {result.backfilled.length}
-          </span>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge color="var(--status-warning)">Moved: {result.moved.length}</StatusBadge>
+          <StatusBadge color="var(--status-critical)">Cancelled: {result.cancelled.length}</StatusBadge>
+          <StatusBadge color="var(--status-good)">Backfilled: {result.backfilled.length}</StatusBadge>
         </div>
       )}
 
       {result.moved.length > 0 && (
-        <>
-          <h3>Moved</h3>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Company</th>
-                <th>Before</th>
-                <th>After</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">Moved</h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Before</TableHead>
+                <TableHead>After</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.moved.map((row) => (
-                <tr key={row.interview_id}>
-                  <td>
+                <TableRow key={row.interview_id}>
+                  <TableCell>
                     {row.student} ({row.roll_no})
-                  </td>
-                  <td>{row.company}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell>{row.company}</TableCell>
+                  <TableCell>
                     <SnapshotCell snap={row.before} />
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <SnapshotCell snap={row.after} />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </>
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {result.cancelled.length > 0 && (
-        <>
-          <h3>Cancelled</h3>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Company</th>
-                <th>Was</th>
-                <th>Reason</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">Cancelled</h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Was</TableHead>
+                <TableHead>Reason</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.cancelled.map((row) => (
-                <tr key={row.interview_id}>
-                  <td>
+                <TableRow key={row.interview_id}>
+                  <TableCell>
                     {row.student} ({row.roll_no})
-                  </td>
-                  <td>{row.company}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell>{row.company}</TableCell>
+                  <TableCell>
                     <SnapshotCell snap={row.before} />
-                  </td>
-                  <td className="muted">{row.reason}</td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{row.reason}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </>
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {result.backfilled.length > 0 && (
-        <>
-          <h3>Backfilled (waitlist promoted into freed slots)</h3>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Company</th>
-                <th>New slot</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">Backfilled (waitlist promoted into freed slots)</h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>New slot</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.backfilled.map((row) => (
-                <tr key={row.interview_id}>
-                  <td>
+                <TableRow key={row.interview_id}>
+                  <TableCell>
                     {row.student} ({row.roll_no})
-                  </td>
-                  <td>{row.company}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell>{row.company}</TableCell>
+                  <TableCell>
                     <SnapshotCell snap={row.after} />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </>
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {!untouched && (
-        <>
-          <h3>Who needs to be informed</h3>
-          <p className="muted">Companies: {result.notify.companies.join(", ") || "none"}</p>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">Who needs to be informed</h3>
+          <p className="text-sm text-muted-foreground">Companies: {result.notify.companies.join(", ") || "none"}</p>
           {result.notify.students.length > 0 && (
-            <ul>
+            <ul className="list-inside list-disc text-sm text-muted-foreground">
               {result.notify.students.map((msg) => (
-                <li key={msg} className="muted">
-                  {msg}
-                </li>
+                <li key={msg}>{msg}</li>
               ))}
             </ul>
           )}
-        </>
+        </div>
       )}
     </div>
   );

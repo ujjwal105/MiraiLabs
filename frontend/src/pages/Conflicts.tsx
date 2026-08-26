@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../api/client";
-import type { Interview } from "../api/types";
-import { categorizeReason } from "../lib/reasons";
-import { TIER_LABEL } from "../lib/tiers";
+import { api } from "@/api/client";
+import type { Interview } from "@/api/types";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { categorizeReason } from "@/lib/reasons";
+import { TIER_LABEL } from "@/lib/tiers";
 
 const DAYS = [1, 2, 3, 4];
 
@@ -46,83 +51,76 @@ export default function Conflicts() {
   }, [conflicts]);
 
   return (
-    <div className="panel">
-      <div className="panel-header-row">
-        <h1>Conflicts</h1>
-        <div className="day-tabs">
-          <button
-            className={day === undefined ? "day-tab day-tab-active" : "day-tab"}
-            onClick={() => setDay(undefined)}
-          >
-            All days
-          </button>
-          {DAYS.map((d) => (
-            <button
-              key={d}
-              className={d === day ? "day-tab day-tab-active" : "day-tab"}
-              onClick={() => setDay(d)}
-            >
-              Day {d}
-            </button>
+    <Card>
+      <CardHeader className="flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle>Conflicts</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {conflicts.length} interview{conflicts.length === 1 ? "" : "s"} could not be scheduled
+            {day ? ` on day ${day}` : ""}.
+          </p>
+        </div>
+        <Tabs value={day === undefined ? "all" : String(day)} onValueChange={(v) => setDay(v === "all" ? undefined : Number(v))}>
+          <TabsList>
+            <TabsTrigger value="all">All days</TabsTrigger>
+            {DAYS.map((d) => (
+              <TabsTrigger key={d} value={String(d)}>
+                Day {d}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {byCategory.map((cat) => (
+            <Badge key={cat.label} variant="destructive">
+              {cat.label}: {cat.count}
+            </Badge>
           ))}
         </div>
-      </div>
 
-      <p className="muted">
-        {conflicts.length} interview{conflicts.length === 1 ? "" : "s"} could not be scheduled
-        {day ? ` on day ${day}` : ""}.
-      </p>
+        <Input
+          placeholder="Search student, roll no, or company…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
 
-      <div className="chip-row">
-        {byCategory.map((cat) => (
-          <span key={cat.label} className="chip">
-            <span className="chip-dot" />
-            {cat.label}: {cat.count}
-          </span>
-        ))}
-      </div>
-
-      <input
-        className="text-input"
-        placeholder="Search student, roll no, or company…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-
-      {error && <p className="muted">Could not load conflicts: {error}</p>}
-      {loading ? (
-        <p className="muted">Loading…</p>
-      ) : (
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>Roll No</th>
-              <th>Company</th>
-              <th>Tier</th>
-              <th>Reason</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((c) => (
-              <tr key={c.id}>
-                <td>{c.student.name}</td>
-                <td>{c.student.roll_no}</td>
-                <td>{c.company.name}</td>
-                <td>{c.company.tier ? TIER_LABEL[c.company.tier] : ""}</td>
-                <td className="muted">{c.unscheduled_reason}</td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={5} className="muted">
-                  No conflicts match.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      )}
-    </div>
+        {error && <p className="text-sm text-muted-foreground">Could not load conflicts: {error}</p>}
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead>Roll No</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Tier</TableHead>
+                <TableHead>Reason</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell>{c.student.name}</TableCell>
+                  <TableCell>{c.student.roll_no}</TableCell>
+                  <TableCell>{c.company.name}</TableCell>
+                  <TableCell>{c.company.tier ? TIER_LABEL[c.company.tier] : ""}</TableCell>
+                  <TableCell className="text-muted-foreground">{c.unscheduled_reason}</TableCell>
+                </TableRow>
+              ))}
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-muted-foreground">
+                    No conflicts match.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   );
 }
